@@ -31,7 +31,7 @@ const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');ctx.ima
 const dialog=document.getElementById('dialog'),title=document.getElementById('dialogTitle'),body=document.getElementById('dialogText'),choices=document.getElementById('choices');
 const player={x:285,y:290,dir:'down',step:0};let clues=new Set();let journalOpen=false;
 try{const saved=JSON.parse(localStorage.getItem('jueguito-save')||'{}');if(Array.isArray(saved.clues))clues=new Set(saved.clues);if(saved.x)player.x=saved.x;if(saved.y)player.y=saved.y}catch(e){}
-const places=[{id:'neighbor',x:345,y:230,label:'Vecina',color:'#b65e43'},{id:'gate',x:465,y:145,label:'Compuerta',color:'#8b6746'},{id:'orchard',x:535,y:285,label:'Chacra',color:'#427b43'}];
+const places=[{id:'neighbor',x:345,y:230,label:'Vecina',color:'#b65e43'},{id:'gate',x:155,y:145,label:'Compuerta',color:'#8b6746'},{id:'orchard',x:535,y:285,label:'Chacra',color:'#427b43'}];
 function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
 function tree(x,y){rect(x+5,y+10,5,12,'#79513a');rect(x,y,15,12,'#2d7047');rect(x+3,y-4,9,8,'#468c52');rect(x+3,y+4,3,3,'#a6c96a')}
 function draw(){
@@ -54,7 +54,7 @@ rect(137,133,35,25,'#b18a51');rect(145,132,5,27,'#6c5437');rect(157,132,5,27,'#6
  // flowers and stones
 for(const [x,y] of [[190,225],[378,205],[390,337],[332,350],[112,180],[372,282]]){rect(x,y,3,3,'#e9d16f');rect(x+3,y+2,3,3,'#f5e8c6');}
  // people
-for(const p of places){rect(p.x-6,p.y+10,13,4,'#55734a');rect(p.x-5,p.y+2,11,12,p.color);rect(p.x-4,p.y-7,9,10,'#e9bd91');rect(p.x-5,p.y-9,11,4,'#55402d');if(p.id==='neighbor')rect(p.x-7,p.y+14,5,8,'#735443');}
+for(const p of places){if(p.id==='gate')continue;rect(p.x-6,p.y+10,13,4,'#55734a');rect(p.x-5,p.y+2,11,12,p.color);rect(p.x-4,p.y-7,9,10,'#e9bd91');rect(p.x-5,p.y-9,11,4,'#55402d');if(p.id==='neighbor')rect(p.x-7,p.y+14,5,8,'#735443');}
  // player sprite
 const x=Math.round(player.x),y=Math.round(player.y);rect(x-7,y+10,15,5,'#65814e');rect(x-5,y+2,11,12,'#3c6f9b');rect(x-4,y-7,9,10,'#e7b98b');rect(x-5,y-9,11,4,'#4b3728');rect(x-5,y+12,4,5,'#604a36');rect(x+2,y+12,4,5,'#604a36');
  // pixel labels
