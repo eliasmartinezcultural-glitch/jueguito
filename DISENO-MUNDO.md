@@ -7,6 +7,7 @@ Luna visita a sus abuelos durante las vacaciones escolares. Este año está más
 La base de investigación cartográfica es la Mapoteca Digital de la Dirección Provincial de Catastro e Información Territorial de Neuquén, que ofrece un mapa específico de la localidad. También se consulta el plan territorial publicado por el Consejo Federal de Inversiones. La cartografía de Mapoteca indica restricciones de reproducción: este videojuego usa un mapa esquemático original y no copia el plano oficial. Antes de afirmar que calles, picadas o estructuras coinciden exactamente con el terreno, se debe georreferenciar con una fuente cuyo uso lo permita y comprobarla con conocimiento local.
 
 Fuentes:
+- Mapa oficial de la localidad: https://dpc.neuquen.gob.ar/MapasYPlanos/Localidades/san_patricio_chagnar.jpg
 - Mapoteca Digital provincial: https://dpc.neuquen.gob.ar/Mapa
 - Índice de mapas de localidades (incluye San Patricio del Chañar): https://dpc.neuquen.gov.ar/dpcasp/mapoteca_digital/localidades.asp
 - Plan territorial CFI: https://www.argentina.gob.ar/sites/default/files/plan_de_ordenamiento_territorial_y_ambiental_para_las_localidades_des_anelo_san_patricio_del_chanar_y_sauzal_bonito_0.pdf
