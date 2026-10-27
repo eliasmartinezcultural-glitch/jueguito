@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#244b3a">
+<title>Jueguito — Los secretos del agua</title>
+<style>
+:root{--ink:#20372c;--cream:#f8f1dc;--green:#244b3a;--gold:#f4c96b;--paper:#fffaf0}
+*{box-sizing:border-box}body{margin:0;background:#d9e7ce;color:var(--ink);font-family:system-ui,-apple-system,Segoe UI,sans-serif}button{font:inherit;cursor:pointer;border:2px solid var(--ink);border-radius:10px;padding:10px 14px;background:var(--gold);color:#20372c;font-weight:800;box-shadow:0 3px 0 #20372c}button:active{transform:translateY(2px);box-shadow:0 1px 0 #20372c}.wrap{max-width:1000px;margin:auto;padding:14px}.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;background:var(--green);color:#fff8e7;padding:14px 18px;border-radius:16px 16px 0 0}.brand{font-size:clamp(1.25rem,3vw,2rem);font-weight:950;letter-spacing:.02em}.sub{font-size:.9rem;opacity:.9}.layout{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:12px;background:#f0e8d1;padding:12px;border-radius:0 0 16px 16px}.screen{min-width:0}.canvasbox{border:4px solid #20372c;border-radius:8px;overflow:hidden;background:#9ecf8a;position:relative}canvas{display:block;width:100%;height:auto;image-rendering:pixelated;image-rendering:crisp-edges}.hint{padding:10px 4px;font-size:.92rem}.side{background:var(--paper);border:2px solid #c5d2ad;border-radius:12px;padding:14px}.side h2{margin:0 0 8px;font-size:1.05rem}.side p{line-height:1.45;font-size:.93rem}.progress{height:12px;background:#d8dfc8;border-radius:20px;overflow:hidden;margin:8px 0}.progress span{display:block;height:100%;width:0;background:#4c8c58;transition:width .2s}.badge{display:inline-block;background:#e4efce;padding:5px 8px;border-radius:7px;font-size:.8rem;font-weight:800}.controls{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;max-width:240px;margin:10px auto}.controls button{padding:12px 0;font-size:1.1rem}.controls .empty{visibility:hidden}.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.dialog{margin-top:10px;background:var(--paper);border:2px solid var(--green);border-radius:12px;padding:14px;display:none}.dialog.show{display:block}.dialog h2{margin:0 0 8px}.dialog p{line-height:1.5;margin:6px 0 12px}.choices{display:flex;gap:8px;flex-wrap:wrap}.choices button{font-size:.9rem}.foot{font-size:.8rem;color:#49614e;text-align:center;padding:12px}.mobilehint{display:none}@media(max-width:720px){.layout{grid-template-columns:1fr}.side{order:2}.top{border-radius:14px}.layout{border-radius:14px;margin-top:10px}.mobilehint{display:block}.controls{max-width:300px}.wrap{padding:8px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div><div class="brand">🌱 JUEGUITO</div><div class="sub">Los secretos del agua · Una aventura en San Patricio del Chañar</div></div><div class="badge">PROTOTIPO 0.1 · GRATIS</div></header>
+<main class="layout">
+<section class="screen">
+<div class="canvasbox"><canvas id="game" width="640" height="400" aria-label="Mapa pixel art del valle, un canal y una chacra"></canvas></div>
+<div class="hint">🚶 Caminá con <b>WASD</b> o las <b>flechas</b>. Acercate a las personas y objetos y apretá <b>E</b> o <b>Espacio</b> para interactuar.</div>
+<div class="mobilehint"><b>Controles para celular</b><div class="controls" aria-label="Controles de movimiento"><button class="empty" tabindex="-1">·</button><button data-move="up" aria-label="Caminar arriba">▲</button><button class="empty" tabindex="-1">·</button><button data-move="left" aria-label="Caminar izquierda">◀</button><button data-move="down" aria-label="Caminar abajo">▼</button><button data-move="right" aria-label="Caminar derecha">▶</button></div></div>
+<div class="actions"><button id="interact">Hablar / investigar · E</button><button id="journalBtn">📖 Mi cuaderno</button><button id="reset">Reiniciar aventura</button></div>
+<div id="dialog" class="dialog" role="status" aria-live="polite"><h2 id="dialogTitle"></h2><p id="dialogText"></p><div id="choices" class="choices"></div></div>
+</section>
+<aside class="side"><h2>📜 Tu misión</h2><p id="mission">Seguí las pistas del agua: descubrí cómo se llevaba el agua desde el río hasta las chacras.</p><div class="progress"><span id="bar"></span></div><p id="progressText"><b>0 de 3 pistas</b> encontradas</p><hr style="border:0;border-top:1px solid #d6ddc8;margin:14px 0"><h2>🧭 Mapa de la aventura</h2><p>🌊 Río Neuquén<br>〰️ Canal de riego<br>🌳 Chacra<br>🧑‍🌾 Vecinos del valle</p><p><b>Consejo:</b> hablá con la vecina, investigá la compuerta y visitá la chacra. Cada pista abre una parte de la historia.</p><div class="badge" id="saveStatus">Progreso guardado en este dispositivo</div></aside>
+</main>
+<div class="foot">Un proyecto educativo independiente. Los personajes y diálogos son ficticios; los datos históricos se documentan por separado.</div>
+</div>
+<script>
+(function(){
+const canvas=document.getElementById('game'),ctx=canvas.getContext('2d');ctx.imageSmoothingEnabled=false;
+const dialog=document.getElementById('dialog'),title=document.getElementById('dialogTitle'),body=document.getElementById('dialogText'),choices=document.getElementById('choices');
+const player={x:285,y:290,dir:'down',step:0};let clues=new Set();let journalOpen=false;
+try{const saved=JSON.parse(localStorage.getItem('jueguito-save')||'{}');if(Array.isArray(saved.clues))clues=new Set(saved.clues);if(saved.x)player.x=saved.x;if(saved.y)player.y=saved.y}catch(e){}
+const places=[{id:'neighbor',x:345,y:230,label:'Vecina',color:'#b65e43'},{id:'gate',x:465,y:145,label:'Compuerta',color:'#8b6746'},{id:'orchard',x:535,y:285,label:'Chacra',color:'#427b43'}];
+function rect(x,y,w,h,c){ctx.fillStyle=c;ctx.fillRect(Math.round(x),Math.round(y),w,h)}
+function tree(x,y){rect(x+5,y+10,5,12,'#79513a');rect(x,y,15,12,'#2d7047');rect(x+3,y-4,9,8,'#468c52');rect(x+3,y+4,3,3,'#a6c96a')}
+function draw(){
+rect(0,0,640,400,'#a8cf8b');
+// patchy field
+for(let y=0;y<400;y+=32)for(let x=0;x<640;x+=32){if(((x*7+y*3)%5)===0)rect(x+5,y+8,3,2,'#91bc78');}
+ // river and sandy bank
+rect(0,0,160,112,'#d6c18a');rect(0,0,148,86,'#4b9fc0');rect(0,12,148,5,'#77c7d7');rect(12,40,70,4,'#77c7d7');rect(65,65,68,3,'#77c7d7');
+ // canal running toward orchard
+rect(142,68,24,332,'#b8a477');rect(149,68,10,332,'#398eae');rect(151,75,3,320,'#73c4d1');
+ // paths
+rect(166,174,474,24,'#c7aa77');rect(285,198,22,202,'#c7aa77');rect(307,188,333,10,'#d8bd8c');
+ // orchard rows
+for(let y=235;y<370;y+=43){for(let x=420;x<615;x+=42){tree(x,y);rect(x+6,y+24,3,4,'#d8a24c');}}
+ // small house and fence
+rect(210,105,90,64,'#b98b62');rect(221,113,68,48,'#e8d2a2');rect(205,99,100,15,'#8c5540');rect(244,132,19,37,'#79513a');rect(220,121,13,13,'#73b9c6');rect(273,121,11,13,'#73b9c6');
+for(let x=198;x<315;x+=12){rect(x,177,4,13,'#8b6746');rect(x-3,181,9,3,'#8b6746');}
+ // gate on canal
+rect(137,133,35,25,'#b18a51');rect(145,132,5,27,'#6c5437');rect(157,132,5,27,'#6c5437');rect(144,142,19,4,'#e5c27d');
+ // flowers and stones
+for(const [x,y] of [[190,225],[378,205],[390,337],[332,350],[112,180],[372,282]]){rect(x,y,3,3,'#e9d16f');rect(x+3,y+2,3,3,'#f5e8c6');}
+ // people
+for(const p of places){rect(p.x-6,p.y+10,13,4,'#55734a');rect(p.x-5,p.y+2,11,12,p.color);rect(p.x-4,p.y-7,9,10,'#e9bd91');rect(p.x-5,p.y-9,11,4,'#55402d');if(p.id==='neighbor')rect(p.x-7,p.y+14,5,8,'#735443');}
+ // player sprite
+const x=Math.round(player.x),y=Math.round(player.y);rect(x-7,y+10,15,5,'#65814e');rect(x-5,y+2,11,12,'#3c6f9b');rect(x-4,y-7,9,10,'#e7b98b');rect(x-5,y-9,11,4,'#4b3728');rect(x-5,y+12,4,5,'#604a36');rect(x+2,y+12,4,5,'#604a36');
+ // pixel labels
+ctx.font='bold 12px monospace';ctx.fillStyle='#173a2d';ctx.fillText('RÍO NEUQUÉN',8,103);ctx.fillText('CANAL',174,87);ctx.fillText('CHACRA',493,224);ctx.fillText('CASA',237,93);
+if(!clues.size){ctx.fillStyle='rgba(20,45,31,.78)';ctx.fillRect(174,12,452,34);ctx.fillStyle='#fff5d9';ctx.font='bold 14px system-ui';ctx.fillText('¡Explorá el valle y encontrá las 3 pistas!',188,34);}
+}
+function save(){try{localStorage.setItem('jueguito-save',JSON.stringify({clues:[...clues],x:player.x,y:player.y}));document.getElementById('saveStatus').textContent='Progreso guardado en este dispositivo'}catch(e){document.getElementById('saveStatus').textContent='Guardado no disponible en este navegador'}}
+function updateUI(){document.getElementById('bar').style.width=(clues.size/3*100)+'%';document.getElementById('progressText').innerHTML='<b>'+clues.size+' de 3 pistas</b> encontradas';document.getElementById('mission').textContent=clues.size===3?'¡Misión cumplida! Ya sabés por qué el agua fue clave para el desarrollo de las chacras.': 'Seguí las pistas del agua: '+(clues.size===0?'hablá con la vecina, revisá la compuerta y visitá la chacra.':clues.size===1?'te faltan dos pistas por descubrir.':'¡bien! te falta poco para completar la investigación.');save();draw()}
+function show(t,b,opts=[]){title.textContent=t;body.textContent=b;choices.innerHTML='';opts.forEach(o=>{const btn=document.createElement('button');btn.textContent=o.label;btn.onclick=o.action;choices.appendChild(btn)});dialog.classList.add('show')}
+function close(){dialog.classList.remove('show')}
+function interact(){
+if(journalOpen){journalOpen=false;close();return}
+let nearest=null,dist=Infinity;for(const p of places){const d=Math.hypot(player.x-p.x,player.y-p.y);if(d<40&&d<dist){nearest=p;dist=d}}
+if(!nearest){show('Todavía no hay nadie cerca','Acercate a una persona, la compuerta del canal o los árboles de la chacra. Después apretá E.');return}
+if(nearest.id==='neighbor'){
+if(clues.has('neighbor')){show('La vecina','¡Ya anotaste esta pista! El riego no fue solamente una obra: necesitó trabajo, organización y gente que se quedara a vivir aquí.');return}
+show('La vecina del valle','“Mirá el paisaje. El río está cerca, pero el agua no llega sola a cada planta. Hubo que organizar cómo captarla y conducirla. ¿Qué deberíamos seguir para entenderlo?”',[{label:'El camino del agua',action:()=>{clues.add('neighbor');updateUI();show('Pista 1: seguir el agua','Correcto. La aventura empieza en el recorrido del agua desde el río hasta las tierras cultivadas.');}},{label:'Las huellas de un caballo',action:()=>show('Probá otra vez','Las huellas pueden contar historias, pero para esta misión tenemos que seguir el agua.')}]);}
+if(nearest.id==='gate'){
+if(clues.has('gate')){show('La compuerta','La pista ya está en tu cuaderno: las bocatomas y los canales ayudaron a conducir el agua hacia las zonas de cultivo.');return}
+show('La compuerta del canal','La historia municipal cuenta que las primeras plantaciones se regaron por bombeo desde el río y que después se construyó una bocatoma. ¿Para qué sirve una bocatoma?',[{label:'Para captar agua y conducirla',action:()=>{clues.add('gate');updateUI();show('Pista 2: la bocatoma','¡Exacto! Una bocatoma permite derivar agua hacia un sistema de conducción. En la historia local, las obras de riego fueron una pieza clave.');}},{label:'Para guardar herramientas',action:()=>show('Casi, pero no','Pensá en el río: ¿qué estructura permite tomar parte de su agua para llevarla a otro lugar?')}]);}
+if(nearest.id==='orchard'){
+if(clues.has('orchard')){show('La chacra','Ya registraste esta pista. El riego hizo posible desarrollar cultivos en tierras que necesitaban un sistema para distribuir el agua.');return}
+show('La chacra','La reseña histórica municipal señala que las primeras cosechas incluyeron papas y que después se desarrolló la fruticultura. ¿Qué necesitaba una chacra además de tierra y plantas?',[{label:'Agua y organización',action:()=>{clues.add('orchard');updateUI();show('Pista 3: la vida en la chacra','¡Misión completa! El agua, las obras, el trabajo y la organización ayudaron a transformar el paisaje. Seguí explorando: este es apenas el primer capítulo.');}},{label:'Un castillo',action:()=>show('¡Eso sería otro juego!','Para cultivar, la chacra necesitaba agua y personas que cuidaran y organizaran el trabajo.')}]);}
+}
+function journal(){journalOpen=true;const entries=[];if(clues.has('neighbor'))entries.push('• Seguir el agua: entender su recorrido fue la primera pista.');if(clues.has('gate'))entries.push('• Bocatoma: estructura para captar y derivar agua hacia canales.');if(clues.has('orchard'))entries.push('• Chacra: el riego y el trabajo permitieron desarrollar cultivos.');if(!entries.length)entries.push('Todavía no encontraste pistas. ¡Hablá con la vecina!');show('📖 Mi cuaderno de campo',entries.join('\n')+'\n\nDato histórico: la fundación oficial de San Patricio del Chañar fue el 21 de mayo de 1973. Las obras de riego habían comenzado antes.');}
+function move(dx,dy){close();const nx=Math.max(12,Math.min(628,player.x+dx)),ny=Math.max(15,Math.min(386,player.y+dy));player.x=nx;player.y=ny;player.dir=dx<0?'left':dx>0?'right':dy<0?'up':'down';player.step++;draw();save()}
+window.addEventListener('keydown',e=>{if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight',' ','w','a','s','d','W','A','S','D','e','E'].includes(e.key))e.preventDefault();if(e.key==='ArrowUp'||e.key.toLowerCase()==='w')move(0,-10);else if(e.key==='ArrowDown'||e.key.toLowerCase()==='s')move(0,10);else if(e.key==='ArrowLeft'||e.key.toLowerCase()==='a')move(-10,0);else if(e.key==='ArrowRight'||e.key.toLowerCase()==='d')move(10,0);else if(e.key.toLowerCase()==='e'||e.key===' ')interact()});
+document.getElementById('interact').onclick=interact;document.getElementById('journalBtn').onclick=journal;
+document.querySelectorAll('[data-move]').forEach(b=>{const m=b.dataset.move;b.addEventListener('click',()=>move(m==='left'?-12:m==='right'?12:0,m==='up'?-12:m==='down'?12:0))});
+document.getElementById('reset').onclick=()=>{if(confirm('¿Querés reiniciar la aventura y borrar las pistas guardadas?')){clues=new Set();player.x=285;player.y=290;close();updateUI()}};
+updateUI();draw();
+})();
+</script>
+</body></html>
